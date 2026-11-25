@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Medical records{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+  <div>
+    <p class="text-primary fw-semibold mb-1">{% if current_user.role == 'doctor' %}Doctor portal{% else %}Patient portal{% endif %}</p>
+    <h1 class="h2 mb-1">{% if current_user.role == 'doctor' %}Consultation history{% else %}My medical history{% endif %}</h1>
+    <p class="text-secondary mb-0">Medical notes and prescriptions for records you are authorized to view.</p>
+  </div>
+</div>
+<div class="row g-3">
+  {% for record in records %}
+    <div class="col-12">
+      <article class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+              <h2 class="h5 mb-1">{{ record.diagnosis }}</h2>
+              <div class="small text-secondary">
+                Visit: {{ (record.visit_date or record.created_at.date()).strftime("%d %b %Y") }}
+                · Dr. {{ record.doctor.user.name }}
+                {% if current_user.role == 'doctor' %} · Patient: {{ record.patient.user.name }}{% endif %}
+              </div>
+            </div>
+            <a class="btn btn-outline-primary btn-sm" href="{{ url_for('views.record_detail', record_id=record.id) }}">View record</a>
+          </div>
+          {% if record.symptoms %}
+            <h3 class="h6 mt-3 mb-1">Symptoms</h3>
+            <p class="preserve-lines mb-2">{{ record.symptoms }}</p>
+          {% endif %}
+          <h3 class="h6 mt-3 mb-1">Treatment notes</h3>
+          <p class="preserve-lines mb-2">{{ record.treatment_notes or record.consultation_notes }}</p>
+          {% if record.prescriptions %}
+            <h3 class="h6 mt-3">Prescriptions</h3>
+            <div class="row g-2">
+              {% for prescription in record.prescriptions %}
+                <div class="col-12 col-md-6">
+                  <div class="prescription-summary">
+                    <div class="fw-semibold">{{ prescription.medicine_name }}</div>
+                    <div>{{ prescription.dosage }} · {{ prescription.frequency }} · {{ prescription.duration }}</div>
+                    {% if prescription.instructions %}<div class="small text-secondary">{{ prescription.instructions }}</div>{% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% elif record.prescription %}
+            <h3 class="h6 mt-3 mb-1">Historical prescription notes</h3>
+            <p class="preserve-lines mb-0">{{ record.prescription }}</p>
+          {% endif %}
+        </div>
+      </article>
+    </div>
+  {% else %}
+    <div class="col-12"><div class="alert alert-light border">No medical records available.</div></div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Care, coordinated{% endblock %}
+{% block content %}
+<section class="hero rounded-4 p-4 p-lg-5 mb-5">
+  <div class="row align-items-center g-4">
+    <div class="col-lg-7">
+      <span class="badge text-bg-light text-primary mb-3">Hospital care, made simple</span>
+      <h1 class="display-5 fw-bold">Your health journey, all in one place.</h1>
+      <p class="lead text-secondary">Book a visit, stay connected with your care team, and keep track of your appointments and records.</p>
+      <a class="btn btn-primary btn-lg me-2" href="{{ url_for('auth.register') }}">Get started</a>
+      <a class="btn btn-outline-primary btn-lg" href="{{ url_for('auth.login') }}">Sign in</a>
+    </div>
+    <div class="col-lg-5 text-center"><i class="fa-solid fa-user-doctor hero-icon"></i></div>
+  </div>
+</section>
+<div class="d-flex justify-content-between align-items-end mb-3">
+  <div><h2 class="h3 mb-1">Our departments</h2><p class="text-secondary mb-0">Explore the services available at MediCare.</p></div>
+</div>
+<div class="row g-3">
+  {% for department in departments %}
+  <div class="col-sm-6 col-lg-4"><div class="card h-100"><div class="card-body">
+    <i class="fa-solid fa-stethoscope text-primary mb-3"></i><h3 class="h5">{{ department.name }}</h3>
+    <p class="text-secondary mb-0">{{ department.description or "Our care team is here to help." }}</p>
+  </div></div></div>
+  {% else %}
+  <div class="col-12"><div class="alert alert-light border">Departments will appear here once they are added by an administrator.</div></div>
+  {% endfor %}
+</div>
+<h2 class="h3 mt-5 mb-3">Meet our doctors</h2>
+<div class="row g-3">
+  {% for doctor in doctors %}
+  <div class="col-sm-6 col-lg-4"><div class="card h-100"><div class="card-body">
+    <h3 class="h5 mb-1">Dr. {{ doctor.user.name }}</h3>
+    <p class="text-primary mb-1">{{ doctor.specialty }}</p>
+    <p class="text-secondary small mb-0">{{ doctor.department.name }} · {{ doctor.qualifications or "Care team" }}</p>
+  </div></div></div>
+  {% else %}
+  <div class="col-12"><div class="alert alert-light border">Our doctor directory is being prepared.</div></div>
+  {% endfor %}
+</div>
+{% endblock %}

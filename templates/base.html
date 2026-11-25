@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MediCare{% endblock %} · MediCare</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="{{ url_for('views.index') }}"><i class="fa-solid fa-heart-pulse me-2"></i>MediCare</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav me-auto">
+        {% if current_user.is_authenticated %}
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('views.dashboard') }}">Dashboard</a></li>
+          {% if current_user.role == 'patient' %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('views.appointments') }}">Appointments</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('views.medical_records') }}">Medical records</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('views.patient_bills') }}">Bills</a></li>
+          {% elif current_user.role == 'doctor' %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('views.appointments') }}">Appointments</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('views.doctor_availability') }}">Availability</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('views.medical_records') }}">Consultation history</a></li>
+          {% elif current_user.role == 'admin' %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}">Administration</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.reports') }}">Reports</a></li>
+          {% endif %}
+        {% endif %}
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        {% if current_user.is_authenticated %}
+          {% if current_user.role == 'patient' %}<a class="btn btn-outline-light btn-sm" href="{{ url_for('views.patient_profile') }}">My profile</a>{% endif %}
+          {% if current_user.role == 'doctor' %}<a class="btn btn-outline-light btn-sm" href="{{ url_for('views.doctor_profile') }}">My profile</a>{% endif %}
+          <span class="text-white small d-none d-lg-inline">{{ current_user.name }}</span>
+          <form method="post" action="{{ url_for('auth.logout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-light btn-sm" type="submit">Sign out</button>
+          </form>
+        {% else %}
+          <a class="btn btn-outline-light btn-sm" href="{{ url_for('auth.login') }}">Sign in</a>
+          <a class="btn btn-light btn-sm" href="{{ url_for('auth.register') }}">Create account</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+<main class="container py-4">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="border-top mt-5 py-4 text-secondary">
+  <div class="container small">MediCare Hospital Management · {{ current_year }} · Educational project</div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

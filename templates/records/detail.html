@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Medical record{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+  <div>
+    <a class="text-decoration-none" href="{{ url_for('views.medical_records') if current_user.role != 'admin' else url_for('admin.medical_records') }}">Back to medical records</a>
+    <h1 class="h2 mt-3 mb-1">Medical record</h1>
+    <p class="text-secondary mb-0">Visit date: {{ (record.visit_date or record.created_at.date()).strftime("%d %B %Y") }}</p>
+  </div>
+  {% if can_manage_prescriptions %}
+    <a class="btn btn-outline-primary" href="{{ url_for('views.edit_existing_record', record_id=record.id) }}">Edit record</a>
+  {% endif %}
+</div>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <article class="card">
+      <div class="card-body p-4">
+        {% if current_user.role != 'patient' %}<p class="text-secondary mb-3">Patient: {{ record.patient.user.name }}</p>{% endif %}
+        {% if current_user.role != 'doctor' %}<p class="text-primary mb-3">Treating doctor: Dr. {{ record.doctor.user.name }}</p>{% endif %}
+        <h2 class="h5">Symptoms</h2>
+        <p class="preserve-lines">{{ record.symptoms or "Not recorded for this historical visit." }}</p>
+        <h2 class="h5">Diagnosis</h2>
+        <p class="preserve-lines">{{ record.diagnosis }}</p>
+        <h2 class="h5">Treatment notes</h2>
+        <p class="preserve-lines">{{ record.treatment_notes or record.consultation_notes }}</p>
+        {% if record.prescription %}
+          <h2 class="h5">Historical prescription notes</h2>
+          <p class="preserve-lines mb-0">{{ record.prescription }}</p>
+        {% endif %}
+      </div>
+    </article>
+  </div>
+  <div class="col-lg-5">
+    <section class="card">
+      <div class="card-header bg-white"><h2 class="h5 my-1">Prescriptions</h2></div>
+      {% if record.prescriptions %}
+        <div class="list-group list-group-flush">
+          {% for prescription in record.prescriptions %}
+            <article class="list-group-item">
+              <div class="d-flex justify-content-between gap-2">
+                <h3 class="h6 mb-2">{{ prescription.medicine_name }}</h3>
+                {% if can_manage_prescriptions %}
+                  <a class="small" href="{{ url_for('views.record_detail', record_id=record.id, edit_prescription=prescription.id) }}">Edit</a>
+                {% endif %}
+              </div>
+              <dl class="row small mb-0">
+                <dt class="col-4">Dosage</dt><dd class="col-8">{{ prescription.dosage }}</dd>
+                <dt class="col-4">Frequency</dt><dd class="col-8">{{ prescription.frequency }}</dd>
+                <dt class="col-4">Duration</dt><dd class="col-8">{{ prescription.duration }}</dd>
+                {% if prescription.instructions %}<dt class="col-4">Instructions</dt><dd class="col-8 preserve-lines">{{ prescription.instructions }}</dd>{% endif %}
+              </dl>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="card-body text-secondary">No structured prescriptions recorded.</div>
+      {% endif %}
+      {% if can_manage_prescriptions and prescription_form %}
+        <div class="card-body border-top">
+          <h3 class="h6">{{ "Edit prescription" if prescription_form.prescription_id.data else "Add prescription" }}</h3>
+          <form method="post" action="{{ url_for('views.manage_prescription', record_id=record.id) }}">
+            {{ prescription_form.hidden_tag() }}
+            {% for field in prescription_form if field.name not in ['csrf_token', 'prescription_id', 'submit'] %}
+              <div class="mb-3">
+                {{ field.label(class="form-label") }}
+                {% if field.type == 'TextAreaField' %}{{ field(class="form-control", rows=3) }}{% else %}{{ field(class="form-control") }}{% endif %}
+                {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+              </div>
+            {% endfor %}
+            <div class="d-flex gap-2">
+              {{ prescription_form.submit(class="btn btn-primary btn-sm") }}
+              {% if prescription_form.prescription_id.data %}<a class="btn btn-outline-secondary btn-sm" href="{{ url_for('views.record_detail', record_id=record.id) }}">Cancel</a>{% endif %}
+            </div>
+          </form>
+        </div>
+      {% elif can_manage_prescriptions %}
+        <div class="card-body border-top">
+          <a class="btn btn-outline-primary btn-sm" href="{{ url_for('views.manage_prescription', record_id=record.id) }}">Add prescription</a>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

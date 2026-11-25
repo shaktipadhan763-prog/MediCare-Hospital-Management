@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit medical record" if record else "Consultation record" }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9 col-xl-8">
+    <div class="mb-4">
+      <a class="text-decoration-none" href="{{ url_for('views.record_detail', record_id=record.id) if record else url_for('views.appointments') }}">Back</a>
+    </div>
+    <div class="card">
+      <div class="card-body p-4">
+        <p class="text-primary fw-semibold mb-1">Patient care</p>
+        <h1 class="h3 mb-1">{{ "Edit medical record" if record else "Consultation record" }}</h1>
+        {% if appointment %}<p class="text-secondary mb-4">Patient: {{ appointment.patient.user.name }} · Appointment: {{ appointment.starts_at.strftime("%d %b %Y, %I:%M %p") }}</p>{% else %}<p class="text-secondary mb-4">Patient: {{ record.patient.user.name }}</p>{% endif %}
+        <form method="post">
+          {{ form.hidden_tag() }}
+          {% for field in form if field.name not in ['csrf_token', 'submit'] %}
+            <div class="mb-3">
+              {{ field.label(class="form-label") }}
+              {% if field.type == 'TextAreaField' %}{{ field(class="form-control", rows=4) }}{% else %}{{ field(class="form-control") }}{% endif %}
+              {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+          {% endfor %}
+          <p class="form-text">Use the structured prescription form on the saved record to add individual medicines with dosage, frequency and duration.</p>
+          {{ form.submit(class="btn btn-primary") }}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

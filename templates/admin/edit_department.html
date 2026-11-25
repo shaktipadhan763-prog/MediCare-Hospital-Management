@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Edit department{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-body p-4">
+        <a class="text-decoration-none" href="{{ url_for('admin.departments') }}"><i class="fa-solid fa-arrow-left me-2"></i>Departments</a>
+        <h1 class="h3 mt-3 mb-4">Edit {{ department.name }}</h1>
+        <form method="post">
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control") }}
+            {% for error in form.name.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control", rows=4) }}
+            {% for error in form.description.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          <p class="small text-secondary">Status: {{ "Active" if department.is_active else "Inactive" }}. Change status from the department list.</p>
+          <div class="d-flex gap-2">
+            {{ form.submit(class="btn btn-primary") }}
+            <a class="btn btn-outline-secondary" href="{{ url_for('admin.departments') }}">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "errors/base.html" %}
+{% block title %}Bad request{% endblock %}
+{% block content %}
+<section class="error-content">
+  <p class="error-code">400</p>
+  <h1>We couldn't process that request</h1>
+  <p>Check the submitted information and try again.</p>
+  <a class="error-link" href="{{ url_for('views.index') }}">Return to MediCare</a>
+</section>
+{% endblock %}

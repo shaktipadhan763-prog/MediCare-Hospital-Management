@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Book an appointment{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-9">
+    <div class="mb-4">
+      <a class="text-decoration-none" href="{{ url_for('views.appointments') }}"><i class="fa-solid fa-arrow-left me-2"></i>My appointments</a>
+    </div>
+    <div class="card">
+      <div class="card-body p-4">
+        <p class="text-primary fw-semibold mb-1">Appointment scheduling</p>
+        <h1 class="h3 mb-2">Book an appointment</h1>
+        <p class="text-secondary mb-4">Choose a department, doctor and date to see current openings.</p>
+        <form method="get" class="row g-3 align-items-end mb-4">
+          <div class="col-md-4">
+            <label for="department_id" class="form-label">Department</label>
+            <select class="form-select" id="department_id" name="department_id" required>
+              <option value="">Select a department</option>
+              {% for department in departments %}
+                <option value="{{ department.id }}" {% if selected_department == department.id %}selected{% endif %}>{{ department.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="doctor_id" class="form-label">Active doctor</label>
+            <select class="form-select" id="doctor_id" name="doctor_id" required>
+              <option value="">Select a doctor</option>
+              {% for doctor in active_doctors %}
+                <option value="{{ doctor.id }}" data-department-id="{{ doctor.department_id }}" {% if selected_doctor == doctor.id %}selected{% endif %}>Dr. {{ doctor.user.name }} — {{ doctor.specialty }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label for="appointment_date" class="form-label">Date</label>
+            <input class="form-control" id="appointment_date" name="appointment_date" type="date" min="{{ today }}" max="{{ last_bookable_date }}" value="{{ selected_date.isoformat() if selected_date else '' }}" required>
+          </div>
+          <div class="col-md-1 d-grid">
+            <button class="btn btn-outline-primary" type="submit" aria-label="Show available slots"><i class="fa-solid fa-magnifying-glass"></i></button>
+          </div>
+        </form>
+
+        {% if selected_doctor %}
+          <section class="mb-4" aria-labelledby="available-dates-heading">
+            <h2 class="h5" id="available-dates-heading">Available dates</h2>
+            {% if available_date_options %}
+              <div class="d-flex flex-wrap gap-2">
+                {% for available_date, slot_count in available_date_options %}
+                  <a class="btn btn-sm {% if selected_date == available_date %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('views.book_appointment', department_id=selected_department, doctor_id=selected_doctor, appointment_date=available_date.isoformat()) }}">
+                    {{ available_date.strftime("%a, %d %b") }} <span class="badge text-bg-light ms-1">{{ slot_count }}</span>
+                  </a>
+                {% endfor %}
+              </div>
+              <p class="form-text">Next 30 days; number indicates open time slots.</p>
+            {% else %}
+              <p class="text-secondary">No appointments are currently available in the next 30 days.</p>
+            {% endif %}
+          </section>
+        {% endif %}
+
+        {% if selected_date and selected_doctor %}
+          <section class="border-top pt-4" aria-labelledby="available-times-heading">
+            <h2 class="h5 mb-3" id="available-times-heading">Available times for {{ selected_date.strftime("%A, %d %B %Y") }}</h2>
+            {% if request.method == 'POST' and form.errors %}
+              <div class="alert alert-warning">Please select a valid department, active doctor, date and available time.</div>
+            {% endif %}
+            {% if slot_times %}
+              <form method="post">
+                {{ form.csrf_token }}
+                <input type="hidden" name="department_id" value="{{ selected_department }}">
+                <input type="hidden" name="doctor_id" value="{{ selected_doctor }}">
+                <input type="hidden" name="appointment_date" value="{{ selected_date.isoformat() }}">
+                <div class="mb-3">
+                  {{ form.time_slot.label(class="form-label") }}
+                  {{ form.time_slot(class="form-select") }}
+                  {% for error in form.time_slot.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="mb-3">
+                  {{ form.reason.label(class="form-label") }}
+                  {{ form.reason(class="form-control", rows=3, maxlength=500) }}
+                  {% for error in form.reason.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+                <button class="btn btn-primary" type="submit">Book appointment</button>
+              </form>
+            {% else %}
+              <p class="text-secondary mb-0">No time slots are available on this date. Choose another available date.</p>
+            {% endif %}
+          </section>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

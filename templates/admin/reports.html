@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Reports and analytics{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+  <div>
+    <p class="text-primary fw-semibold mb-1">Administration</p>
+    <h1 class="h2 mb-1">Reports and analytics</h1>
+    <p class="text-secondary mb-0">Database-driven activity and payment reports for the selected period.</p>
+  </div>
+  {% if report %}
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-primary" href="{{ url_for('admin.export_reports_csv', start_date=report.start_date, end_date=report.end_date) }}">Export CSV</a>
+      <a class="btn btn-primary" href="{{ url_for('admin.export_reports_pdf', start_date=report.start_date, end_date=report.end_date) }}">Download PDF</a>
+    </div>
+  {% endif %}
+</div>
+<section class="card mb-4">
+  <div class="card-body">
+    <form class="row g-3 align-items-end" method="get" action="{{ url_for('admin.reports') }}">
+      <div class="col-sm-5 col-lg-3">
+        {{ form.start_date.label(class="form-label") }}
+        {{ form.start_date(class="form-control", type="date") }}
+        {% for error in form.start_date.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+      </div>
+      <div class="col-sm-5 col-lg-3">
+        {{ form.end_date.label(class="form-label") }}
+        {{ form.end_date(class="form-control", type="date") }}
+        {% for error in form.end_date.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+      </div>
+      <div class="col-sm-2"><button class="btn btn-primary w-100" type="submit">Apply</button></div>
+      {% if report %}<div class="col-12"><span class="small text-secondary">Appointments use their scheduled date. Payments use their received date; outstanding balances are current balances for invoices issued in this range. Patient and doctor totals are all-time.</span></div>{% endif %}
+    </form>
+  </div>
+</section>
+{% if report %}
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="stat-card"><span>Patients (all time)</span><strong>{{ report.patient_count }}</strong></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card"><span>Doctors (all time)</span><strong>{{ report.doctor_count }}</strong></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card"><span>Appointments in range</span><strong>{{ report.appointment_count }}</strong></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card"><span>Completed</span><strong>{{ report.completed_count }}</strong></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card"><span>Cancelled</span><strong>{{ report.cancelled_count }}</strong></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card"><span>Total billed revenue</span><strong>{{ "%.2f"|format(report.billed_amount) }}</strong></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card"><span>Payments received</span><strong>{{ "%.2f"|format(report.collected_amount) }}</strong></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card"><span>Outstanding balance</span><strong>{{ "%.2f"|format(report.outstanding_amount) }}</strong></div></div>
+  </div>
+
+  <section class="card mb-4">
+    <div class="card-body">
+      <h2 class="h5 mb-1">Monthly collected revenue</h2>
+      <p class="text-secondary small mb-3">Based on recorded payments received during the selected period, not invoice totals.</p>
+      {% for row in report.monthly_revenue %}
+        <div class="revenue-chart-row">
+          <div class="revenue-chart-label">{{ row.month }}</div>
+          <div class="revenue-chart-track" role="img" aria-label="{{ row.month }} collected {{ "%.2f"|format(row.amount) }}">
+            <div class="revenue-chart-bar" style="width: {{ row.bar_width }}%"></div>
+          </div>
+          <div class="revenue-chart-value">{{ "%.2f"|format(row.amount) }}</div>
+        </div>
+      {% else %}
+        <p class="text-secondary mb-0">No recorded payments in this period.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="row g-4 mb-4">
+    {% for granularity, heading in [("daily", "Daily appointments"), ("weekly", "Weekly appointments"), ("monthly", "Monthly appointments")] %}
+      <div class="col-lg-4">
+        <section class="card h-100">
+          <div class="card-body">
+            <h2 class="h5">{{ heading }}</h2>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead><tr><th>Period</th><th>Total</th><th>Completed</th><th>Cancelled</th></tr></thead>
+                <tbody>
+                  {% for row in report.appointment_periods[granularity] %}
+                    <tr><td>{{ row.period }}</td><td>{{ row.appointments }}</td><td>{{ row.completed }}</td><td>{{ row.cancelled }}</td></tr>
+                  {% else %}
+                    <tr><td colspan="4" class="text-secondary">No appointments.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="row g-4">
+    <div class="col-xl-7">
+      <section class="card h-100">
+        <div class="card-body">
+          <h2 class="h5">Doctor-wise appointments</h2>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead><tr><th>Doctor</th><th>Department</th><th>Total</th><th>Completed</th><th>Cancelled</th></tr></thead>
+              <tbody>
+                {% for row in report.doctor_stats %}
+                  <tr><td>Dr. {{ row.name }}</td><td>{{ row.department }}</td><td>{{ row.appointments }}</td><td>{{ row.completed }}</td><td>{{ row.cancelled }}</td></tr>
+                {% else %}
+                  <tr><td colspan="5" class="text-secondary">No appointments.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="col-xl-5">
+      <section class="card h-100">
+        <div class="card-body">
+          <h2 class="h5">Department-wise patients</h2>
+          <p class="small text-secondary">Distinct patients with non-cancelled appointments in this period.</p>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead><tr><th>Department</th><th>Patients</th></tr></thead>
+              <tbody>
+                {% for row in report.department_stats %}
+                  <tr><td>{{ row.department }}</td><td>{{ row.patients }}</td></tr>
+                {% else %}
+                  <tr><td colspan="2" class="text-secondary">No departments available.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="col-12">
+      <section class="card">
+        <div class="card-body">
+          <h2 class="h5">Payment status</h2>
+          <p class="small text-secondary">Status is derived from recorded payment amounts for invoices issued in this period.</p>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead><tr><th>Status</th><th>Invoices</th><th>Billed</th><th>Collected to date</th><th>Outstanding</th></tr></thead>
+              <tbody>
+                {% for row in report.payment_status %}
+                  <tr>
+                    <td><span class="badge status-{{ row.status }}">{{ row.status|title }}</span></td>
+                    <td>{{ row.bills }}</td>
+                    <td>{{ "%.2f"|format(row.billed) }}</td>
+                    <td>{{ "%.2f"|format(row.collected) }}</td>
+                    <td>{{ "%.2f"|format(row.outstanding) }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "errors/base.html" %}
+{% block title %}Page not found{% endblock %}
+{% block content %}
+<section class="error-content">
+  <p class="error-code">404</p>
+  <h1>Page not found</h1>
+  <p>The requested page isn't available.</p>
+  <a class="error-link" href="{{ url_for('views.index') }}">Return to MediCare</a>
+</section>
+{% endblock %}

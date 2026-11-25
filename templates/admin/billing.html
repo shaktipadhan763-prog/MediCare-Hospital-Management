@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Billing management{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+  <div>
+    <p class="text-primary fw-semibold mb-1">Administration</p>
+    <h1 class="h2 mb-1">Billing and payments</h1>
+    <p class="text-secondary mb-0">Manage invoices and record payments against outstanding balances.</p>
+  </div>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-4"><div class="stat-card"><span>Total billed</span><strong>{{ "%.2f"|format(total_billed) }}</strong></div></div>
+  <div class="col-6 col-lg-4"><div class="stat-card"><span>Payments received</span><strong>{{ "%.2f"|format(total_paid) }}</strong></div></div>
+  <div class="col-12 col-lg-4"><div class="stat-card"><span>Outstanding balance</span><strong>{{ "%.2f"|format(outstanding_total) }}</strong></div></div>
+</div>
+<div class="row g-4">
+  <div class="col-xl-4">
+    <div class="card">
+      <div class="card-body p-4">
+        <h2 class="h5 mb-3">Create invoice</h2>
+        <form method="post">
+          {{ form.hidden_tag() }}
+          {% for field in [form.patient_id, form.appointment_id, form.description, form.consultation_fee, form.service_charges, form.discount_amount] %}
+            <div class="mb-3">
+              {{ field.label(class="form-label") }}
+              {% if field.type == 'SelectField' %}{{ field(class="form-select") }}{% else %}{{ field(class="form-control", step="0.01", min="0") }}{% endif %}
+              {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+          {% endfor %}
+          <div class="alert alert-light border small">Invoice total is calculated as consultation fee + service charges − discount.</div>
+          {{ form.submit(class="btn btn-primary w-100") }}
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-8">
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light"><tr><th>Invoice</th><th>Patient / description</th><th>Total</th><th>Paid / due</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for bill in bills %}
+              <tr>
+                <td><a class="fw-semibold" href="{{ url_for('views.invoice', bill_id=bill.id) }}">{{ bill.invoice_number }}</a><div class="small text-secondary">{{ bill.issued_at.strftime("%d %b %Y") }}</div></td>
+                <td>{{ bill.patient.user.name }}<div class="small text-secondary">{{ bill.description }}</div></td>
+                <td>{{ "%.2f"|format(bill.amount) }}</td>
+                <td><div>{{ "%.2f"|format(bill.paid_amount) }}</div><div class="small text-secondary">Due {{ "%.2f"|format(bill.outstanding_balance) }}</div></td>
+                <td><span class="badge status-{{ bill.status }}">{{ bill.status|title }}</span></td>
+                <td class="text-nowrap">
+                  {% if not bill.payments %}
+                    <a class="btn btn-outline-primary btn-sm mb-1" href="{{ url_for('admin.edit_bill', bill_id=bill.id) }}">Edit</a>
+                  {% endif %}
+                  <a class="btn btn-outline-secondary btn-sm mb-1" href="{{ url_for('views.invoice', bill_id=bill.id) }}">Invoice</a>
+                  {% if bill.outstanding_balance > 0 %}
+                    <form class="mt-2" method="post" action="{{ url_for('admin.record_payment', bill_id=bill.id) }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <div class="input-group input-group-sm mb-1">
+                        <input class="form-control" type="number" name="amount" min="0.01" max="{{ '%.2f'|format(bill.outstanding_balance) }}" step="0.01" placeholder="Amount" required>
+                        <select class="form-select" name="payment_method" aria-label="Payment method" required>
+                          <option value="">Method</option>
+                          <option value="cash">Cash</option><option value="upi">UPI</option><option value="card">Card</option><option value="bank_transfer">Bank Transfer</option>
+                        </select>
+                      </div>
+                      <button class="btn btn-success btn-sm w-100" type="submit">Record payment</button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% else %}
+              <tr><td class="text-center text-secondary py-4" colspan="6">No invoices available.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

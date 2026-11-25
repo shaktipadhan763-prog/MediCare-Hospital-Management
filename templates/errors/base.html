@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Request error{% endblock %} · MediCare</title>
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+  <main class="error-layout">
+    <div class="error-card">
+      <p class="error-brand">MediCare Hospital</p>
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</body>
+</html>

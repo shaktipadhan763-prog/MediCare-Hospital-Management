@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Appointments{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4"><div><h1 class="h2 mb-1">Appointments</h1><p class="text-secondary mb-0">Review appointment details and status.</p></div>
+  {% if current_user.role == 'patient' and not admin_view %}<a class="btn btn-primary" href="{{ url_for('views.book_appointment') }}">Book appointment</a>{% elif current_user.role == 'doctor' %}<a class="btn btn-outline-primary" href="{{ url_for('views.doctor_availability') }}">Manage availability</a>{% endif %}
+</div>
+<div class="card"><div class="table-responsive"><table class="table table-hover align-middle mb-0">
+  <thead><tr><th>Date & time</th><th>Patient</th><th>Doctor</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+  <tbody>{% for appointment in appointments %}
+    <tr><td>{{ appointment.starts_at.strftime("%d %b %Y, %I:%M %p") }}</td><td>{{ appointment.patient.user.name }}</td><td>Dr. {{ appointment.doctor.user.name }}</td>
+      <td>{{ appointment.reason }}</td><td><span class="badge status-{{ appointment.status }}">{{ appointment.status|title }}</span><div class="small text-secondary">{{ appointment.duration_minutes }} min</div></td><td class="text-nowrap">
+        {% if current_user.role == 'patient' and not admin_view and appointment.status in ['scheduled', 'confirmed'] and appointment.starts_at > now %}
+          <form class="d-inline" method="post" action="{{ url_for('views.cancel_appointment', appointment_id=appointment.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-danger btn-sm" data-confirm="Cancel this appointment?" type="submit">Cancel</button></form>
+        {% elif current_user.role == 'doctor' and appointment.doctor_id == current_user.doctor_profile.id %}
+          <form class="d-inline" method="post" action="{{ url_for('views.update_appointment_status', appointment_id=appointment.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><select class="form-select form-select-sm d-inline-block w-auto" name="status"><option value="scheduled" {% if appointment.status == 'scheduled' %}selected{% endif %}>Scheduled</option><option value="confirmed" {% if appointment.status == 'confirmed' %}selected{% endif %}>Confirmed</option><option value="completed" {% if appointment.status == 'completed' %}selected{% endif %}>Completed</option><option value="cancelled" {% if appointment.status == 'cancelled' %}selected{% endif %}>Cancelled</option></select><button class="btn btn-primary btn-sm" type="submit">Update</button></form>
+          <a class="btn btn-outline-primary btn-sm" href="{{ url_for('views.edit_record', appointment_id=appointment.id) }}">Consult</a>
+        {% elif admin_view %}
+          <form method="post" action="{{ url_for('admin.update_appointment', appointment_id=appointment.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><select class="form-select form-select-sm d-inline-block w-auto" name="status"><option value="scheduled" {% if appointment.status == 'scheduled' %}selected{% endif %}>Scheduled</option><option value="confirmed" {% if appointment.status == 'confirmed' %}selected{% endif %}>Confirmed</option><option value="completed" {% if appointment.status == 'completed' %}selected{% endif %}>Completed</option><option value="cancelled" {% if appointment.status == 'cancelled' %}selected{% endif %}>Cancelled</option></select><button class="btn btn-primary btn-sm" type="submit">Update</button></form>
+        {% endif %}
+      </td></tr>
+  {% else %}<tr><td colspan="6" class="text-center text-secondary py-4">No appointments found.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% endblock %}

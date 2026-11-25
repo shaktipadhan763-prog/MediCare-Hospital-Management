@@ -1,0 +1,195 @@
+:root {
+  --bs-primary: #176b87;
+  --bs-primary-rgb: 23, 107, 135;
+  --page-bg: #f5f8fa;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--page-bg);
+}
+
+.hero {
+  background: linear-gradient(135deg, #e6f4f7 0%, #f6fbfc 70%);
+}
+
+.hero-icon {
+  font-size: clamp(7rem, 18vw, 13rem);
+  color: #176b87;
+  opacity: .85;
+}
+
+.card {
+  border: 1px solid #e6edf0;
+  box-shadow: 0 2px 8px rgb(22 61 74 / 4%);
+}
+
+.stat-card {
+  min-height: 145px;
+  padding: 1.15rem;
+  background: #fff;
+  border: 1px solid #e6edf0;
+  border-radius: .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.stat-card span {
+  color: #667780;
+  font-size: .9rem;
+}
+
+.stat-card strong {
+  color: #163d4a;
+  font-size: 2rem;
+}
+
+.stat-card a {
+  font-size: .85rem;
+  text-decoration: none;
+}
+
+.status-scheduled,
+.status-unpaid,
+.status-partial {
+  color: #775600;
+  background: #fff0c2;
+}
+
+.status-confirmed {
+  color: #084298;
+  background: #cfe2ff;
+}
+
+.status-completed,
+.status-paid {
+  color: #146c43;
+  background: #d7f0e2;
+}
+
+.status-cancelled {
+  color: #9c2834;
+  background: #f8dadd;
+}
+
+.preserve-lines {
+  white-space: pre-line;
+}
+
+.prescription-summary {
+  height: 100%;
+  padding: .8rem 1rem;
+  background: #f5f8fa;
+  border: 1px solid #e6edf0;
+  border-radius: .5rem;
+}
+
+.revenue-chart-row {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(4rem, 1fr) 6rem;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: .8rem;
+}
+
+.revenue-chart-label,
+.revenue-chart-value {
+  font-size: .9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.revenue-chart-value {
+  text-align: right;
+}
+
+.revenue-chart-track {
+  height: 1.15rem;
+  overflow: hidden;
+  background: #e8eff2;
+  border-radius: 999px;
+}
+
+.revenue-chart-bar {
+  height: 100%;
+  min-width: .25rem;
+  background: linear-gradient(90deg, #176b87, #36a1aa);
+  border-radius: inherit;
+}
+
+.error-layout {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.error-card {
+  width: min(100%, 34rem);
+  padding: 2.5rem;
+  background: #fff;
+  border: 1px solid #e6edf0;
+  border-radius: .75rem;
+  box-shadow: 0 2px 8px rgb(22 61 74 / 8%);
+}
+
+.error-brand {
+  color: #176b87;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.error-code {
+  margin: 0;
+  color: #176b87;
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.error-content h1 {
+  margin-top: 1rem;
+  font-size: 1.5rem;
+}
+
+.error-content p:not(.error-code) {
+  color: #667780;
+}
+
+.error-link {
+  display: inline-block;
+  margin-top: .5rem;
+  padding: .65rem 1rem;
+  color: #fff;
+  background: #176b87;
+  border-radius: .4rem;
+  text-decoration: none;
+}
+
+.error-link:hover,
+.error-link:focus {
+  color: #fff;
+  background: #12566d;
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  nav,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  .invoice-sheet {
+    border: 0;
+    box-shadow: none;
+  }
+
+  .invoice-sheet .card-body {
+    padding: 0 !important;
+  }
+}

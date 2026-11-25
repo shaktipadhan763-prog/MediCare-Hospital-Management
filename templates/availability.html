@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Doctor availability{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+  <div>
+    <p class="text-primary fw-semibold mb-1">Appointment scheduling</p>
+    <h1 class="h2 mb-1">Doctor availability</h1>
+    <p class="text-secondary mb-0">Manage weekly hours, appointment length, breaks and leave dates.</p>
+  </div>
+  <a class="btn btn-outline-primary" href="{% if current_user.role == 'admin' %}{{ url_for('admin.doctors') }}{% else %}{{ url_for('views.appointments') }}{% endif %}">Back</a>
+</div>
+
+{% if current_user.role == 'admin' %}
+  <form method="get" class="card card-body mb-4">
+    <label class="form-label" for="availability-doctor">Select a doctor</label>
+    <div class="d-flex gap-2">
+      <select class="form-select" id="availability-doctor" name="doctor_id" required>
+        <option value="">Choose a doctor</option>
+        {% for option in doctors %}
+          <option value="{{ option.id }}" {% if doctor and option.id == doctor.id %}selected{% endif %}>Dr. {{ option.user.name }} — {{ option.department.name }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-outline-primary" type="submit">Manage</button>
+    </div>
+  </form>
+{% endif %}
+
+{% if doctor %}
+  <div class="mb-4">
+    <h2 class="h4 mb-1">Dr. {{ doctor.user.name }}</h2>
+    <p class="text-secondary mb-0">{{ doctor.department.name }} · {{ doctor.specialty }}</p>
+  </div>
+  <div class="row g-4">
+    <div class="col-xl-7">
+      <div class="card mb-4" id="working-hours">
+        <div class="card-body p-4">
+          <h2 class="h5 mb-3">{{ "Edit" if availability_form.start_time.data else "Set" }} weekly working hours</h2>
+          <form method="post" action="{{ url_for('views.save_doctor_availability') }}">
+            {{ availability_form.hidden_tag() }}
+            {% if current_user.role == 'admin' %}<input type="hidden" name="doctor_id" value="{{ doctor.id }}">{% endif %}
+            <div class="row g-3">
+              <div class="col-md-6">
+                {{ availability_form.weekday.label(class="form-label") }}
+                {{ availability_form.weekday(class="form-select") }}
+                {% for error in availability_form.weekday.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+              </div>
+              <div class="col-md-6">
+                {{ availability_form.slot_duration_minutes.label(class="form-label") }}
+                {{ availability_form.slot_duration_minutes(class="form-select") }}
+                {% for error in availability_form.slot_duration_minutes.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+              </div>
+              <div class="col-md-6">
+                {{ availability_form.start_time.label(class="form-label") }}
+                {{ availability_form.start_time(class="form-control", type="time") }}
+                {% for error in availability_form.start_time.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+              </div>
+              <div class="col-md-6">
+                {{ availability_form.end_time.label(class="form-label") }}
+                {{ availability_form.end_time(class="form-control", type="time") }}
+                {% for error in availability_form.end_time.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+              </div>
+              <div class="col-md-6">
+                {{ availability_form.break_start.label(class="form-label") }}
+                {{ availability_form.break_start(class="form-control", type="time") }}
+                {% for error in availability_form.break_start.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+              </div>
+              <div class="col-md-6">
+                {{ availability_form.break_end.label(class="form-label") }}
+                {{ availability_form.break_end(class="form-control", type="time") }}
+                {% for error in availability_form.break_end.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+              </div>
+            </div>
+            <p class="form-text mt-2">Leave both break times blank if there is no daily break. Saving a day updates its existing schedule.</p>
+            <button class="btn btn-primary" type="submit">{{ availability_form.submit.label.text }}</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header bg-white"><h2 class="h5 my-1">Weekly schedule</h2></div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Day</th><th>Hours</th><th>Break</th><th>Duration</th><th></th></tr></thead>
+            <tbody>
+              {% for schedule in schedules %}
+                <tr>
+                  <td>{{ weekdays[schedule.weekday] }}</td>
+                  <td>{{ schedule.start_time.strftime("%H:%M") }}–{{ schedule.end_time.strftime("%H:%M") }}</td>
+                  <td>{% if schedule.break_start %}{{ schedule.break_start.strftime("%H:%M") }}–{{ schedule.break_end.strftime("%H:%M") }}{% else %}—{% endif %}</td>
+                  <td>{{ schedule.slot_duration_minutes }} min</td>
+                  <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('views.doctor_availability', doctor_id=doctor.id, weekday=schedule.weekday) }}#working-hours">Edit</a></td>
+                </tr>
+              {% else %}
+                <tr><td class="text-center text-secondary py-4" colspan="5">No working hours configured. Patients cannot book until a day is added.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-5">
+      <div class="card mb-4">
+        <div class="card-body p-4">
+          <h2 class="h5 mb-3">Mark unavailable dates</h2>
+          <form method="post" action="{{ url_for('views.add_doctor_leave') }}">
+            {{ leave_form.hidden_tag() }}
+            {% if current_user.role == 'admin' %}<input type="hidden" name="doctor_id" value="{{ doctor.id }}">{% endif %}
+            <div class="mb-3">
+              {{ leave_form.start_date.label(class="form-label") }}
+              {{ leave_form.start_date(class="form-control", type="date") }}
+              {% for error in leave_form.start_date.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+              {{ leave_form.end_date.label(class="form-label") }}
+              {{ leave_form.end_date(class="form-control", type="date") }}
+              {% for error in leave_form.end_date.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+              {{ leave_form.reason.label(class="form-label") }}
+              {{ leave_form.reason(class="form-control", maxlength=300) }}
+              {% for error in leave_form.reason.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            <button class="btn btn-outline-primary" type="submit">Add unavailable dates</button>
+          </form>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header bg-white"><h2 class="h5 my-1">Unavailable dates</h2></div>
+        <ul class="list-group list-group-flush">
+          {% for leave in leaves %}
+            <li class="list-group-item d-flex justify-content-between align-items-start gap-3">
+              <div>
+                <div class="fw-semibold">{{ leave.start_date.strftime("%d %b %Y") }}{% if leave.end_date != leave.start_date %} – {{ leave.end_date.strftime("%d %b %Y") }}{% endif %}</div>
+                {% if leave.reason %}<div class="small text-secondary">{{ leave.reason }}</div>{% endif %}
+              </div>
+              <form method="post" action="{{ url_for('views.delete_doctor_leave', leave_id=leave.id) }}">
+                {% if current_user.role == 'admin' %}<input type="hidden" name="doctor_id" value="{{ doctor.id }}">{% endif %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+              </form>
+            </li>
+          {% else %}
+            <li class="list-group-item text-secondary">No unavailable dates recorded.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+{% elif current_user.role == 'admin' %}
+  <div class="alert alert-info">Choose a doctor above to configure their working hours and leave dates.</div>
+{% endif %}
+{% endblock %}

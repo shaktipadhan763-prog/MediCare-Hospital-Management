@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-8">
+  <div class="mb-4"><a class="text-decoration-none" href="{{ url_for('views.dashboard') }}"><i class="fa-solid fa-arrow-left me-2"></i>Back to dashboard</a></div>
+  <div class="card"><div class="card-body p-4"><h1 class="h3 mb-4">{{ title }}</h1>
+    <form method="post">{{ form.hidden_tag() }}
+      {% for field in form if field.name not in ['csrf_token', 'submit'] %}
+        <div class="mb-3">{{ field.label(class="form-label") }}
+          {% if field.type == 'SelectField' %}{{ field(class="form-select") }}
+          {% elif field.type == 'TextAreaField' %}{{ field(class="form-control", rows=4) }}
+          {% else %}{{ field(class="form-control") }}{% endif %}
+          {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+        </div>
+      {% endfor %}
+      {{ form.submit(class="btn btn-primary") }}
+  </form></div></div>
+</div></div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}My bills{% endblock %}
+{% block content %}
+<h1 class="h2 mb-1">My invoices</h1>
+<p class="text-secondary mb-4">Review your invoices, payment history and outstanding balances.</p>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead class="table-light"><tr><th>Invoice</th><th>Issued</th><th>Description</th><th>Total</th><th>Paid</th><th>Due</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for bill in bills %}
+          <tr>
+            <td class="fw-semibold">{{ bill.invoice_number }}</td>
+            <td>{{ bill.issued_at.strftime("%d %b %Y") }}</td>
+            <td>{{ bill.description }}</td>
+            <td>{{ "%.2f"|format(bill.amount) }}</td>
+            <td>{{ "%.2f"|format(bill.paid_amount) }}</td>
+            <td>{{ "%.2f"|format(bill.outstanding_balance) }}</td>
+            <td><span class="badge status-{{ bill.status }}">{{ bill.status|title }}</span></td>
+            <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('views.invoice', bill_id=bill.id) }}">View invoice</a></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="8" class="text-center text-secondary py-4">No invoices available.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

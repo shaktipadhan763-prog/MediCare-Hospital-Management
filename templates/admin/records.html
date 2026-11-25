@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Medical records{% endblock %}
+{% block content %}
+<div class="mb-4">
+  <p class="text-primary fw-semibold mb-1">Administration</p>
+  <h1 class="h2 mb-1">Medical record monitoring</h1>
+  <p class="text-secondary mb-0">Read-only access to patient records and prescriptions.</p>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light"><tr><th>Visit date</th><th>Patient</th><th>Doctor</th><th>Diagnosis</th><th>Prescriptions</th><th></th></tr></thead>
+      <tbody>
+        {% for record in records %}
+          <tr>
+            <td>{{ (record.visit_date or record.created_at.date()).strftime("%d %b %Y") }}</td>
+            <td>{{ record.patient.user.name }}</td>
+            <td>Dr. {{ record.doctor.user.name }}</td>
+            <td>{{ record.diagnosis }}</td>
+            <td>{{ record.prescriptions|length }}</td>
+            <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('views.record_detail', record_id=record.id) }}">View</a></td>
+          </tr>
+        {% else %}
+          <tr><td class="text-center text-secondary py-4" colspan="6">No medical records available.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

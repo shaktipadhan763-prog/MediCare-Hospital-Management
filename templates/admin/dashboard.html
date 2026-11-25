@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Administration{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4"><div><p class="text-primary fw-semibold mb-1">Administration</p><h1 class="h2 mb-0">Hospital overview</h1></div></div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="stat-card"><span>Patients</span><strong>{{ patient_count }}</strong><a href="{{ url_for('admin.patients') }}">Manage patients</a></div></div>
+  <div class="col-6 col-lg-3"><div class="stat-card"><span>Doctors</span><strong>{{ doctor_count }}</strong><a href="{{ url_for('admin.doctors') }}">Manage doctors</a></div></div>
+  <div class="col-6 col-lg-3"><div class="stat-card"><span>Appointments</span><strong>{{ appointment_count }}</strong><a href="{{ url_for('admin.appointments') }}">Manage appointments</a></div></div>
+  <div class="col-6 col-lg-3"><div class="stat-card"><span>Medical records</span><strong>{{ record_count }}</strong><a href="{{ url_for('admin.medical_records') }}">Monitor records</a></div></div>
+  <div class="col-6 col-lg-3"><div class="stat-card"><span>Unpaid bills</span><strong>{{ unpaid_count }}</strong><a href="{{ url_for('admin.billing') }}">Manage billing</a></div></div>
+  <div class="col-6 col-lg-3"><div class="stat-card"><span>Active departments</span><strong>{{ department_count }}</strong><a href="{{ url_for('admin.departments') }}">Manage departments</a></div></div>
+</div>
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <a class="btn btn-outline-primary" href="{{ url_for('admin.departments') }}">Departments</a>
+  <a class="btn btn-outline-primary" href="{{ url_for('admin.doctors') }}">Doctors</a>
+  <a class="btn btn-outline-primary" href="{{ url_for('admin.patients') }}">Patients</a>
+  <a class="btn btn-outline-primary" href="{{ url_for('admin.appointments') }}">Appointments</a>
+  <a class="btn btn-outline-primary" href="{{ url_for('admin.medical_records') }}">Medical records</a>
+  <a class="btn btn-outline-primary" href="{{ url_for('admin.billing') }}">Billing</a>
+  <a class="btn btn-primary" href="{{ url_for('admin.reports') }}">Reports &amp; analytics</a>
+</div>
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <span class="badge status-scheduled">Scheduled: {{ appointment_statuses.scheduled }}</span>
+  <span class="badge status-confirmed">Confirmed: {{ appointment_statuses.confirmed }}</span>
+  <span class="badge status-completed">Completed: {{ appointment_statuses.completed }}</span>
+  <span class="badge status-cancelled">Cancelled: {{ appointment_statuses.cancelled }}</span>
+</div>
+<div class="card"><div class="card-header bg-white"><h2 class="h5 my-1">Latest appointments</h2></div>
+  <div class="table-responsive"><table class="table mb-0"><thead><tr><th>When</th><th>Patient</th><th>Doctor</th><th>Status</th></tr></thead><tbody>
+    {% for appointment in appointments %}<tr><td>{{ appointment.starts_at.strftime("%d %b %Y %H:%M") }}</td><td>{{ appointment.patient.user.name }}</td><td>Dr. {{ appointment.doctor.user.name }}</td><td>{{ appointment.status|title }}</td></tr>
+    {% else %}<tr><td colspan="4" class="text-center text-secondary py-4">No appointments yet.</td></tr>{% endfor %}
+  </tbody></table></div>
+</div>
+{% endblock %}
